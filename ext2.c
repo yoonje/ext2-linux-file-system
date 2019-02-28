@@ -58,7 +58,7 @@ int ext2_read(EXT2_NODE * EXT2Entry, int offset, unsigned long length, char* buf
     INODE inodeBuffer;
 
     get_inode(EXT2Entry->fs, EXT2Entry->entry.inode, &inodeBuffer); // inode 번호를 구한다 
-    block_read(EXT2Entry->fs->disk, inodeBuffer.block[count], block); // inodeBuffer를 통해서 값을 입력 받는다
+    block_read(EXT2Entry->fs, inodeBuffer.block[count], block); // inodeBuffer를 통해서 값을 입력 받는다
     memcpy(buffer, block, MAX_BLOCK_SIZE-1); // 복사해준다
     
     if(inodeBuffer.blocks + 1 > count) // 더 읽어올지 그만 읽어올지를 정해주는 부분 - shell.c와 연동
@@ -66,79 +66,78 @@ int ext2_read(EXT2_NODE * EXT2Entry, int offset, unsigned long length, char* buf
     return -1; // no more read
 }
 
-int ext2_rmdir( EXT2_NODE* parent,EXT2_NODE* rmdir ){//insert modify
+int ext2_rmdir( EXT2_NODE* parent,EXT2_NODE* rmdir )
+{
 	DISK_OPERATIONS* disk= parent->fs->disk;
 	INODE inodeBuffer;
 	BYTE block[MAX_BLOCK_SIZE];
 	EXT2_DIR_ENTRY* dir;
-	INT32 count=1;//지우므로 free갯수는 증가
+	INT32 count=1; // 지우므로 free갯수는 증가
 	INT32 inodenum,groupnum;
-	char* entryName=NULL;
+	char* entryName = NULL;
 	EXT2_NODE bufferNode;
 	
 	rmdir->fs = parent->fs;
 	int i,bitmap_num;
-	get_inode(parent->fs,rmdir->entry.inode,&inodeBuffer);
-	//type..
+
+	get_inode(parent->fs, rmdir->entry.inode, &inodeBuffer);
+	// type exception handler
     if(!(inodeBuffer.mode & FILE_TYPE_DIR)) {
 		printf("this is not type DIR!!\n");
 		return EXT2_ERROR;
 	}
 
-	//if find anything... it is error.
+	// if find anything... this is error.
 	if(lookup_entry(parent->fs, rmdir->entry.inode,entryName,&bufferNode)==EXT2_SUCCESS) 
 			return EXT2_ERROR;
 
-	//directory안에 아무것도 없는 것이 확인 되었을 때 수행..
+	// directory안에 아무것도 없는 것이 확인 되었을 때 수행..
 
-	//사용 블럭 제로화
-	for(i=0;i<inodeBuffer.blocks;i++){
-		ZeroMemory(block,MAX_BLOCK_SIZE);
-		if(i <= 12){
-		block_write(disk,inodeBuffer.block[i],block);
-		set_gd_free_block_count(rmdir,inodeBuffer.block[i],count);
-		set_sb_free_block_count(rmdir,count);
+	// 사용 블럭 제로화
+	for(i=0; i<inodeBuffer.blocks; i++){
+		ZeroMemory(block, MAX_BLOCK_SIZE);
+		if(i <= EXT2_D_BLOCKS){
+		block_write(disk,inodeBuffer.block[i], block);
+		set_gd_free_block_count(rmdir, inodeBuffer.block[i], count);
+		set_sb_free_block_count(rmdir, count);
 		
 		//set block bit
-		block_read(disk,BLOCKS_PER_GROUP*GET_DATA_GROUP(inodeBuffer.block[i])+BLOCK_BITMAP_BASE,block);
+		block_read(disk, BLOCKS_PER_GROUP * GET_DATA_GROUP(inodeBuffer.block[i]) + BLOCK_BITMAP_BASE, block);
 		bitmap_num = (inodeBuffer.block[i] % (BLOCKS_PER_GROUP) ) - DATA_BLOCK_BASE;
-		set_zero_bit(bitmap_num,block);//----------------------------
-		
-		block_read(disk,BLOCKS_PER_GROUP*GET_DATA_GROUP(inodeBuffer.block[i])+BLOCK_BITMAP_BASE,block);
+		set_zero_bit(bitmap_num, block);//----------------------------
+		block_write(disk, BLOCKS_PER_GROUP * GET_DATA_GROUP(inodeBuffer.block[i]) + BLOCK_BITMAP_BASE, block);
 		}
 		else{
-			//indirect}
+			// indirect
 			}
 	}
 
 	// delete file location..
-	block_read(disk,rmdir->location.block,block);
+	block_read(disk, rmdir->location.block, block);
     dir = (EXT2_DIR_ENTRY*)block;
     dir += rmdir->location.offset;
 
-	inodenum = dir->inode; //지우므로 미리 저장 해둠
-	groupnum = inodenum/INODES_PER_GROUP;
+	inodenum = dir->inode; // 지우므로 미리 저장 해둠
+	groupnum = inodenum / INODES_PER_GROUP;
 
-	//delete entry in parent block & make free mode
-	ZeroMemory(dir,sizeof(EXT2_DIR_ENTRY));
-	block_write(disk,rmdir->location.block,block);
+	// delete entry in parent block & make free mode
+	ZeroMemory(dir, sizeof(EXT2_DIR_ENTRY));
+	block_write(disk, rmdir->location.block, block);
 	dir->name[0]=DIR_ENTRY_FREE;//DIR_ENTRY_FREE;
-	set_entry(parent->fs,&rmdir->location,dir);
+	set_entry(parent->fs, &rmdir->location, dir);
 
-
-	//delete file's-->inode_table delete, inode bitmap관리
-	ZeroMemory(&inodeBuffer,sizeof(INODE));
+	// delete file's-->inode_table delete, inode bitmap관리
+	ZeroMemory(&inodeBuffer, sizeof(INODE));
 	insert_inode_table(parent, &inodeBuffer, inodenum);
-
 	
-	block_read(disk,groupnum*BLOCKS_PER_GROUP+INODE_BITMAP_BASE,block);
-	bitmap_num = (inodenum%INODES_PER_GROUP)-1;
-	set_zero_bit(bitmap_num,block); //inode가 1부터 시작하므로 -1을 해준다.
-	block_write(disk,groupnum*BLOCKS_PER_GROUP+INODE_BITMAP_BASE,block);
+	block_read(disk, groupnum * BLOCKS_PER_GROUP + INODE_BITMAP_BASE, block);
+	bitmap_num = (inodenum % INODES_PER_GROUP) - 1;
+	set_zero_bit(bitmap_num,block); // inode가 1부터 시작하므로 -1을 해준다.
+	block_write(disk, groupnum * BLOCKS_PER_GROUP+INODE_BITMAP_BASE, block);
 
-	//free inode count 관리
-	set_sb_free_inode_count(rmdir,count);
-	set_gd_free_inode_count(rmdir,inodenum,count);
+	// free inode count 관리
+	set_sb_free_inode_count(rmdir, count);
+	set_gd_free_inode_count(rmdir, inodenum, count);
 	
     return EXT2_SUCCESS;
 }
@@ -175,7 +174,7 @@ int ext2_remove(EXT2_NODE* parent, EXT2_NODE* rmfile)
 		block_read(disk, BLOCKS_PER_GROUP*GET_DATA_GROUP(inodeBuffer.block[i]) + BLOCK_BITMAP_BASE, block);
 		bitmap_num = (inodeBuffer.block[i] % (BLOCKS_PER_GROUP) ) - DATA_BLOCK_BASE;
 		set_zero_bit(bitmap_num, block);		
-		block_read(disk,BLOCKS_PER_GROUP*GET_DATA_GROUP(inodeBuffer.block[i])+BLOCK_BITMAP_BASE,block);
+		block_write(disk,BLOCKS_PER_GROUP*GET_DATA_GROUP(inodeBuffer.block[i])+BLOCK_BITMAP_BASE,block);
 		}
 		else{
 			// indirect area
@@ -855,7 +854,7 @@ int insert_entry(EXT2_NODE * parent, EXT2_NODE * newEntry, UINT16 fileType)
 			free_block_num = get_free_block_number(parent->fs); // free블럭 받아오고
 			
 			inodeBuffer.block[inodeBuffer.blocks-1] = free_block_num; // 간접 참조를 생각하지 않은 할당
-			//indirect 영역
+			// indirect 영역
 			entry.location.block = free_block_num;
 			entry.location.offset = 0;
 			
