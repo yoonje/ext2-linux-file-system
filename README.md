@@ -8,4 +8,4 @@ This Project is not implemented double, triple inode indrect.<br>
 
 I implemented just single indiret.<br>
 
-I`m waiting for yout pull request!!
+I`m waiting for your pull request!!
