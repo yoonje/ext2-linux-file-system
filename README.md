@@ -24,6 +24,6 @@ After this commands you can use several Linux command like touch, mkdir, mv, ls,
 # Comment
 This Project is not implemented double, triple inode indrect.<br>
 
-I implemented just single indiret.<br>
+I implemented just single indirect.<br>
 
 I`m waiting for your pull request!!
