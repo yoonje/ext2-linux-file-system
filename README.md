@@ -19,7 +19,7 @@ $ [/]# format
 $ [/]# mount
 ```
 
-After this commands you can use several command like Linux(touch, mkdir, mv, ls, cd...)
+After this commands you can use several Linux command like touch, mkdir, mv, ls, cd...
 
 # Comment
 This Project is not implemented double, triple inode indrect.<br>
