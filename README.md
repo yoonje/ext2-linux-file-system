@@ -1,7 +1,7 @@
 # EXT2-Linux-File-System
 EXT2 File System emulator. It works like Linux does.<br>
 
-# Run
+## Run
 
 ```sh
 $ make
@@ -21,7 +21,7 @@ $ [/]# mount
 
 After this commands you can use several Linux command like touch, mkdir, mv, ls, cd...
 
-# Comment
+## Comment
 This Project is not implemented double, triple inode indirect.<br>
 
 I implemented just single indirect.<br>
