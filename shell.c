@@ -69,7 +69,7 @@ int g_isMounted;
 
 int main(int argc, char* argv[])
 {
-	if (disksim_init(NUMBER_OF_SECTORS, SECTOR_SIZE, &g_disk) < 0) // DISK_OPERATION에 대한 정보를 모두 입력
+	if (disksim_init(NUMBER_OF_SECTORS, SECTOR_SIZE, &g_disk) < 0)
 	{
 		printf("disk simulator initialization has been failed\n");
 		return -1;
@@ -117,7 +117,7 @@ void do_shell(void)
 }
 /******************************************************************************/
 /*																			  */
-/*							SHELL_COMMAND_LSIST 							  */
+/*							SHELL_COMMAND_LIST 						    	  */
 /*																			  */
 /******************************************************************************/
 int shell_cmd_cd(int argc, char* argv[])
