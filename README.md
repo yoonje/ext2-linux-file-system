@@ -1,6 +1,9 @@
 # EXT2-Linux-File-System
 EXT2 File System emulator. It works like Linux does.<br>
 
+# Action
+<img src="image/run.png" width="60%" height="60%">
+
 ## Run
 
 ```sh
@@ -23,7 +26,5 @@ After this commands you can use several Linux command like touch, mkdir, mv, ls,
 
 ## Comment
 This Project is not implemented double, triple inode indirect.<br>
-
 I implemented just single indirect.<br>
-
 I`m waiting for your pull request!!
