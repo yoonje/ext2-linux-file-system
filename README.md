@@ -1,10 +1,10 @@
 # EXT2-Linux-File-System
 EXT2 file system emulator. It works like Linux does.<br>
 
-# Action
+### Action
 <img src="image/run.png" width="60%" height="60%">
 
-## Run
+### Run
 
 ```sh
 $ make
