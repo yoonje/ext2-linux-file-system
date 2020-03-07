@@ -1,4 +1,4 @@
-# EXT2-Linux-File-System
+# EXT2 Linux File System
 EXT2 file system emulator. It works like Linux does.<br>
 
 ### Action
