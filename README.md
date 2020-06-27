@@ -1,8 +1,8 @@
 # EXT2 Linux File System
-EXT2 file system emulator. It works like Linux does.<br>
+EXT2 file system emulator. It works like Linux does.
 
-### Action
-<img src="image/run.png" width="60%" height="60%">
+### Result
+![result](https://user-images.githubusercontent.com/38535571/85922952-e8abe600-b8c1-11ea-8b42-9b968a85b07e.png)
 
 ### Run
 
